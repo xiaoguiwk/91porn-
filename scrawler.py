@@ -60,8 +60,6 @@ def download_ts(url, index):
                 f.write(chunk)
     print(f"已下载：{save_path}")
 
-
-
 def merge_ts(output_file):
     with open(output_file, "wb") as merged:
         for ts_file in sorted(os.listdir("ts_files")):
@@ -88,9 +86,10 @@ def del_trash(r,one_page_video_urls,ids):
     return pure_urls, pure_ids
 
 def main():
-    base_url = 'https://91xx10.cc'
-    favorite_url = 'https://91xx10.cc/video/category/most-favorite/'
-    pages = range(2,3)
+    base_url = 'https://zvm.xinhua107.com/'
+    favorite_url = base_url+'video/category/most-favorite/'
+    cdns = ["cdn2.jiuse3.cloud","fdc100g2b.jiuse.cloud","dp.jiuse.cloud","shark10g2.jiuse.cloud"]
+    pages = range(19,20)
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
@@ -111,14 +110,14 @@ def main():
         one_page_video_urls, ids = del_trash(r_page,t2_one_page_video_urls,t_ids)
 
         #接下来进入每个视频的页面进行下载。这里需要遍历视频主页和视频id所以用for循环
-        for i in range(len(one_page_video_urls)):#len(one_page_video_urls)
+        for i in range(7,len(one_page_video_urls)):#len(one_page_video_urls)
             print(f'processing page {page} video {i}')
             r_video = requests.get(one_page_video_urls[i], headers=headers)
 
             #获取视频的信息
             m3u8, title, favorites, uploader, upload_date = get_video_info(r_video)
             print(title)
-            m3u8_url = 'https://cdn2.jiuse3.cloud/hls/' + ids[i] + '/index.'+m3u8
+            m3u8_url = 'https://'+cdns[0]+'/hls/' + ids[i] + '/index.'+m3u8
             r_m3u8 = requests.get(m3u8_url, headers=headers)
 
             # 获取ts文件链接
@@ -130,7 +129,8 @@ def main():
                 for idx, url in enumerate(full_ts_urls, start=1):
                     executor.submit(download_ts, url, idx)
             # 合并ts文件
-            file_name = f'./video/{str(page)}-{str(i)}-{title}-{favorites}-{upload_date}.mp4'
+            title,favorites,uploader,upload_date = [x.replace('/','') for x in [title,favorites,uploader,upload_date]]
+            file_name = f'./video/p10-19/{str(page)}-{str(i)}-{title}-{favorites}-{uploader}-{upload_date}.mp4'
             merge_ts(file_name)
 
 if __name__ == '__main__':
